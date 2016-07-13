@@ -9,6 +9,7 @@ import android.os.RemoteException;
 
 import com.foo.aidldemo.PlayServiceAIDL;
 import com.foo.aidldemo.service.PlayService;
+import com.foo.aidldemo.utils.LogUtils;
 import com.foo.aidldemo.view.PlayView;
 
 
@@ -41,6 +42,7 @@ public class PlayPresenter {
 
     public void create(Context ctx) {
         Intent service = new Intent(ctx, PlayService.class);
+        ctx.startService(service);
         ctx.bindService(service, conn, Context.BIND_AUTO_CREATE);
     }
 

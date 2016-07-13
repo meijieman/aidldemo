@@ -1,6 +1,5 @@
 package com.foo.aidldemo.ui;
 
-import android.os.Bundle;
 import android.os.RemoteException;
 import android.view.View;
 import android.widget.TextView;
