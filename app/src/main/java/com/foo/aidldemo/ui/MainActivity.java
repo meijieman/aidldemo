@@ -22,6 +22,8 @@ public class MainActivity extends BaseActivity implements PlayView {
     protected void initEventAndListener() {
         mPresenter = new PlayPresenter(this);
         mPresenter.create(this);
+
+        mPresenter.loadData(0);
     }
 
     @Override
@@ -35,15 +37,18 @@ public class MainActivity extends BaseActivity implements PlayView {
         mPresenter.destroy(this);
     }
 
-    @OnClick({R.id.btn_play, R.id.btn_pause, R.id.btn_stop, R.id.btn_previous, R.id.btn_next})
+    @OnClick({R.id.btn_play, R.id.btn_pause, R.id.btn_resume, R.id.btn_stop, R.id.btn_previous, R.id.btn_next})
     void onClick(View view) {
         try {
             switch (view.getId()) {
                 case R.id.btn_play:
-                    mPresenter.play();
+                    mPresenter.play(0);
                     break;
                 case R.id.btn_pause:
                     mPresenter.pause();
+                    break;
+                case R.id.btn_resume:
+                    mPresenter.resume();
                     break;
                 case R.id.btn_stop:
                     mPresenter.stop();
@@ -63,5 +68,10 @@ public class MainActivity extends BaseActivity implements PlayView {
     @Override
     public void setStatus(String msg) {
         mStatusTv.setText(msg);
+    }
+
+    @Override
+    public void showT(String msg) {
+        showToast(msg);
     }
 }

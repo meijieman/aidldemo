@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.IBinder;
 
 import com.foo.aidldemo.utils.LogUtils;
+
 /**
  * Created by Administrator on 2016/6/21.
  */

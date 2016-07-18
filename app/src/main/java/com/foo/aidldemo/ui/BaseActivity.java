@@ -40,7 +40,7 @@ public abstract class BaseActivity extends AppCompatActivity {
      * toast
      * @param msg
      */
-    public static void showToast(String msg){
+    public static void showToast(String msg) {
         if (sToast == null) {
             sToast = Toast.makeText(sActivity, "", Toast.LENGTH_SHORT);
         }

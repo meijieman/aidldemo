@@ -7,9 +7,21 @@ import android.util.Log;
  */
 public class LogUtils {
 
-    private static final String TAG = "hongfans";
+    private static final boolean isDebug = true;
+    private static final String TAG = "LogUtils";
 
-    public static void e(String msg){
-        Log.e(TAG, msg);
+    public static void e(String msg) {
+        if (!isDebug) {
+            return;
+        }
+        String prefix = "";
+        StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+        if (traces.length >= 3) {
+            String filename = traces[3].getFileName().replace(".java", "");
+            String methodName = traces[3].getMethodName();
+            int lineNumber = traces[3].getLineNumber();
+            prefix = "[" + filename + "#" + methodName + "()Line:" + lineNumber + "] ";
+        }
+        Log.e(TAG, prefix + msg);
     }
 }

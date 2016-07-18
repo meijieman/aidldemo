@@ -6,4 +6,6 @@ package com.foo.aidldemo.view;
 public interface PlayView {
 
     void setStatus(String msg);
+
+    void showT(String msg);
 }
