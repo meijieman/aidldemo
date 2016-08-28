@@ -15,6 +15,10 @@ public class MainActivity extends BaseActivity implements PlayView {
 
     @BindView(R.id.tv_status)
     TextView mStatusTv;
+    @BindView(R.id.tv_play_process)
+    TextView mPlayProcessTv;
+    @BindView(R.id.tv_buffer_process)
+    TextView mBufferProcessTv;
 
     private PlayPresenter mPresenter;
 
@@ -34,7 +38,7 @@ public class MainActivity extends BaseActivity implements PlayView {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mPresenter.destroy(this);
+        mPresenter.destroy();
     }
 
     @OnClick({R.id.btn_play, R.id.btn_pause, R.id.btn_resume, R.id.btn_stop, R.id.btn_previous, R.id.btn_next})
@@ -68,6 +72,16 @@ public class MainActivity extends BaseActivity implements PlayView {
     @Override
     public void setStatus(String msg) {
         mStatusTv.setText(msg);
+    }
+
+    @Override
+    public void setPlayProcess(String process) {
+        mPlayProcessTv.setText(process);
+    }
+
+    @Override
+    public void setBufferProcess(String process) {
+        mBufferProcessTv.setText(process);
     }
 
     @Override

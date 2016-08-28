@@ -1,11 +1,13 @@
 package com.foo.aidldemo.service;
 
 import android.media.MediaPlayer;
+import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 
 import com.foo.aidldemo.OnPlayListener;
 import com.foo.aidldemo.PlayServiceAIDL;
 import com.foo.aidldemo.aidl.Music;
+import com.foo.aidldemo.service.constant.PlayState;
 import com.foo.aidldemo.utils.LogUtils;
 
 import java.io.IOException;
@@ -17,47 +19,41 @@ import java.util.List;
  */
 public class PlayBinder extends PlayServiceAIDL.Stub {
 
-    // 1 顺序播放；2 单曲循环；3 随机播放； 4 列表循环； 5 倒序播放; 6 单曲播放
-    public static final int ORDER = 1;
-    public static final int REPATE_ONCE = 2;
-    public static final int SHUFFLE = 3;
-    public static final int REPATE_LIST = 4;
-    public static final int REPATE_LIST_REVERSE = 5;
-    public static final int ONCE = 6;
-
     private MediaPlayer mPlayer;
-    private int mSortBy; // 播放顺序
     private List<Music> mPlayList = new ArrayList<>();
 
-    private OnPlayListener mPlayListener;
+    private RemoteCallbackList<OnPlayListener> mCallbackList = new RemoteCallbackList<>();
+
     private int mPosition = -1; // 当前播放位置
+    private int mState;
 
     public PlayBinder() {
         mPlayer = new MediaPlayer();
+        initListener();
+    }
+
+    private void initListener() {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                if (mPlayListener != null) {
-                    try {
-                        mPlayListener.onPlayCompleted();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }
+
+                changeState(PlayState.STATE_COMPLETION, null);
             }
         });
         // 得到缓冲的百分比
         mPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
             @Override
             public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                if (mPlayListener != null) {
+                LogUtils.e("缓冲的百分比 " + percent);
+                int count = mCallbackList.beginBroadcast();
+                for (int i = 0; i < count; i++) {
                     try {
-                        mPlayListener.onBufferingUpdate(percent);
-                        mPlayListener.onUpdate((int) (mp.getCurrentPosition() * 100.0f / mp.getDuration()));
+                        mCallbackList.getBroadcastItem(i).onBufferingUpdate(percent);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
                 }
+                mCallbackList.finishBroadcast();
             }
         });
         mPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
@@ -79,10 +75,47 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
                     case MediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
 
                         break;
+                    case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                        // 未知错误
+
+                        break;
+                    case MediaPlayer.MEDIA_INFO_BUFFERING_START:
+                        // 暂停播放等待缓冲更多数据
+
+                        break;
+                    case MediaPlayer.MEDIA_INFO_BUFFERING_END:
+                        // 在缓冲完后继续播放
+
+                        break;
+                    default:
+
+                        break;
                 }
                 return true;
             }
         });
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                // 其他线程
+                changeState(PlayState.STATE_PLAYING, null);
+                mp.start();
+            }
+        });
+    }
+
+    // 改变状态，发送回调
+    private void changeState(int state, String msg) {
+        mState = state;
+        int count = mCallbackList.beginBroadcast();
+        for (int i = 0; i < count; i++) {
+            try {
+                mCallbackList.getBroadcastItem(i).onStateChanged(mState, msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        mCallbackList.finishBroadcast();
     }
 
     // 实现自定义的方法
@@ -92,43 +125,20 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         if (mPlayer == null) {
             throw new IllegalStateException("mediaPlayer 为空");
         }
-        if (pos < 0){
-            throw new IllegalArgumentException("播放列表索引不能小于 0，当前为 " + pos);
-        }
-        if (mPlayList.size() - 1 < pos ) {
-            LogUtils.e("准备数据中");
-            return;
+        if (pos < 0 || pos > mPlayList.size() - 1) {
+            throw new IllegalArgumentException("播放列表索引越界，当前为 " + pos + "，最大为 " + (mPlayList.size() - 1));
         }
         try {
             mPlayer.reset();
             mPlayer.setDataSource(mPlayList.get(pos).url);
-            mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    // 其他线程
-                    // 监听准备完成
-                    if (mPlayListener != null) {
-                        try {
-                            mPlayListener.onPrepared();
-                        } catch (RemoteException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    mp.start();
-                }
-            });
-            if (mPlayListener != null) {
-                mPlayListener.onPrepareStart();
-            }
+
+            // 准备播放
+            changeState(PlayState.STATE_PREPARE, null);
             mPlayer.prepareAsync();
             // mPlayer.prepare();// 为耗时操作
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
         }
-
-        LogUtils.e("play: ");
     }
 
     @Override
@@ -138,7 +148,6 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         }
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
-            LogUtils.e("pause: ");
         }
     }
 
@@ -151,19 +160,16 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
     }
 
     @Override
-    public void previous() {
-        LogUtils.e("previous: ");
-    }
-
-    @Override
-    public void next() {
-        LogUtils.e("next: ");
+    public int getPlayState() throws RemoteException {
+        return mState;
     }
 
     @Override
     public void setPlayList(List<com.foo.aidldemo.aidl.Music> data) {
-        mPlayList.clear();
-        mPlayList.addAll(data);
+        if (data != null) {
+            mPlayList.clear();
+            mPlayList.addAll(data);
+        }
     }
 
     @Override
@@ -172,23 +178,33 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
     }
 
     @Override
-    public Music getPlayMusic() throws RemoteException {
-        return mPlayList.get(mPosition);
+    public int getCurrentPosition() throws RemoteException {
+        if (mPosition < mPlayList.size() && mPosition >= 0) {
+            return mPosition;
+        }
+        return -1;
     }
 
     @Override
-    public void setOrder(int sortBy) {
-        mSortBy = sortBy;
+    public Music getCurrentMusic() throws RemoteException {
+        if (mPosition < mPlayList.size() && mPosition >= 0) {
+            return mPlayList.get(mPosition);
+        }
+        return null;
     }
 
     @Override
-    public boolean hasPrevious() {
-        return false;
+    public void registerPlayListener(OnPlayListener listener) throws RemoteException {
+        if (listener != null) {
+            mCallbackList.register(listener);
+        }
     }
 
     @Override
-    public boolean hasNext() {
-        return false;
+    public void unRegisterPlayListener(OnPlayListener listener) throws RemoteException {
+        if (listener != null) {
+            mCallbackList.unregister(listener);
+        }
     }
 
     @Override
@@ -199,10 +215,5 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         if (!mPlayer.isPlaying()) {
             mPlayer.start();
         }
-    }
-
-    @Override
-    public void setOnPlayListener(OnPlayListener listener) {
-        mPlayListener = listener;
     }
 }

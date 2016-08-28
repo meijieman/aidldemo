@@ -11,15 +11,15 @@ interface PlayServiceAIDL {
     void pause();
     void resume();
     void stop();
-    void previous();
-    void next();
+
+    int getPlayState(); // 播放状态
 
     void setPlayList(in List<Music> data);
     List<Music> getPlayList();
-    Music getPlayMusic();
-    void setOrder(int sortBy); // 播放顺序: 1 顺序播放；2 单曲循环；3 随机播放； 4 列表循环； 5 倒序播放
-    boolean hasPrevious();
-    boolean hasNext();
 
-    void setOnPlayListener(OnPlayListener listener);// 播放回调
+    int getCurrentPosition(); // 正在播放的音乐的位置 -1 表示没有播放音乐
+    Music getCurrentMusic(); // 正在播放的音乐
+
+    void registerPlayListener(OnPlayListener listener);// 播放回调
+    void unRegisterPlayListener(OnPlayListener listener);
 }

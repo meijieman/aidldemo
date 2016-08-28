@@ -10,11 +10,24 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".ui.MainActivity">
+
     <TextView
+        android:id="@+id/tv_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tv_status"
-        android:text="就绪"/>
+        android:text="播放状态"/>
+
+    <TextView
+        android:id="@+id/tv_play_process"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="播放进度"/>
+
+    <TextView
+        android:id="@+id/tv_buffer_process"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="缓冲进度"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -33,6 +46,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="pause"/>
+
         <Button
             android:id="@+id/btn_resume"
             android:layout_width="wrap_content"
