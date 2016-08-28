@@ -173,6 +173,17 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
     }
 
     @Override
+    public void resume() {
+        if (mPlayer == null) {
+            throw new IllegalStateException("mediaPlayer 为空");
+        }
+        if (mState == PlayState.STATE_PAUSE) {
+            mPlayer.start();
+            changeState(PlayState.STATE_PLAYING, null);
+        }
+    }
+
+    @Override
     public void stop() {
         if (mPlayer == null) {
             return;
@@ -239,16 +250,5 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
     @Override
     public void removePlayedListener(OnPlayedListener listener) throws RemoteException {
         mPlayedListener = null;
-    }
-
-    @Override
-    public void resume() {
-        if (mPlayer == null) {
-            throw new IllegalStateException("mediaPlayer 为空");
-        }
-        if (!mPlayer.isPlaying()) {
-            mPlayer.start();
-            changeState(PlayState.STATE_PLAYING, null);
-        }
     }
 }

@@ -44,26 +44,26 @@ public class MainActivity extends BaseActivity implements PlayView {
 
     @OnClick({R.id.btn_play, R.id.btn_pause, R.id.btn_resume, R.id.btn_stop, R.id.btn_previous, R.id.btn_next})
     void onClick(View view) {
-            switch (view.getId()) {
-                case R.id.btn_play:
-                    mPresenter.play(0);
-                    break;
-                case R.id.btn_pause:
-                    mPresenter.pause();
-                    break;
-                case R.id.btn_resume:
-                    mPresenter.resume();
-                    break;
-                case R.id.btn_stop:
-                    mPresenter.stop();
-                    break;
-                case R.id.btn_previous:
-                    mPresenter.previous();
-                    break;
-                case R.id.btn_next:
-                    mPresenter.next();
-                    break;
-            }
+        switch (view.getId()) {
+            case R.id.btn_play:
+                mPresenter.play(-1);
+                break;
+            case R.id.btn_pause:
+                mPresenter.pause();
+                break;
+            case R.id.btn_resume:
+                mPresenter.resume();
+                break;
+            case R.id.btn_stop:
+                mPresenter.stop();
+                break;
+            case R.id.btn_previous:
+                mPresenter.previous();
+                break;
+            case R.id.btn_next:
+                mPresenter.next();
+                break;
+        }
     }
 
     @Override

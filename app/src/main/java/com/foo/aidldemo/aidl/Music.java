@@ -9,11 +9,13 @@ import android.os.Parcelable;
 public class Music implements Parcelable {
 
     public String name;
-    public int id;
+    public int    id;
     public String url;
     public String imgUrl;
+    public String singer;
+    public int    level;
 
-    public Music(){
+    public Music() {
 
     }
 
@@ -22,6 +24,8 @@ public class Music implements Parcelable {
         id = in.readInt();
         url = in.readString();
         imgUrl = in.readString();
+        singer = in.readString();
+        level = in.readInt();
     }
 
     public static final Creator<Music> CREATOR = new Creator<Music>() {
@@ -47,15 +51,17 @@ public class Music implements Parcelable {
         dest.writeInt(id);
         dest.writeString(url);
         dest.writeString(imgUrl);
+        dest.writeString(singer);
+        dest.writeInt(level);
     }
 
     @Override
     public String toString() {
         return "Music{" +
-                "name='" + name + '\'' +
-                ", id=" + id +
-                ", url='" + url + '\'' +
-                ", imgUrl='" + imgUrl + '\'' +
-                '}';
+               "name='" + name + '\'' +
+               ", id=" + id +
+               ", url='" + url + '\'' +
+               ", imgUrl='" + imgUrl + '\'' +
+               '}';
     }
 }

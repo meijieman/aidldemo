@@ -13,6 +13,7 @@ import com.foo.aidldemo.service.PlayManager;
 import com.foo.aidldemo.service.PlayManagerImpl;
 import com.foo.aidldemo.service.PlayService;
 import com.foo.aidldemo.service.constant.PlayState;
+import com.foo.aidldemo.utils.SPUtil;
 import com.foo.aidldemo.view.PlayView;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.List;
  */
 public class PlayPresenter {
 
+    public static final String CURR_POSITION = "curr_position";
     private PlayView mView;
     private Handler   mHandler = new Handler();
     private PlayModel mModel   = new PlayModel();
@@ -75,6 +77,7 @@ public class PlayPresenter {
                             mView.showT("准备播放《" + name + "》");
                             break;
                         case PlayState.STATE_PLAYING:
+                            SPUtil.putInt(CURR_POSITION, mManager.getCurrentPosition());
                             mView.setStatus("正在播放《" + name + "》");
                             break;
                         case PlayState.STATE_STOP:
@@ -103,6 +106,10 @@ public class PlayPresenter {
     }
 
     public void play(int pos) {
+        // 获取上次播放的歌曲位置
+        if (pos == -1) {
+            pos = SPUtil.getInt(CURR_POSITION, 0);
+        }
         mManager.play(pos);
     }
 

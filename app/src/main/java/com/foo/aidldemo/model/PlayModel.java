@@ -37,37 +37,43 @@ public class PlayModel {
         data.add(music);
 
         Music music1 = new Music();
-        music1.name = "";
+        music1.name = "贝加尔湖畔(Live)";
         music1.id = 1001;
+        music1.singer = "李维/周深";
         music1.url = "http://m5.file.xiami.com/672/119672/1609297031/1773484877_15715337_l.mp3?auth_key=df8ee76c6357a2fc57203cf454fda42f-1474560000-0-null";
         data.add(music1);
 
         Music music2 = new Music();
-        music2.name = "";
+        music2.name = "Fade";
+        music2.singer="Alan Walker";
         music2.id = 1002;
         music2.url = "http://m5.file.xiami.com/258/23258/1329241248/1774185888_16584888_l.mp3?auth_key=7f44fb99d26ec5cc12974fe6f10373f6-1474560000-0-null";
         data.add(music2);
 
         Music music3 = new Music();
-        music3.name = "";
+        music3.name = "Soup";
+        music3.singer = "藤原さくら";
         music3.id = 1003;
         music3.url = "http://m5.file.xiami.com/845/915604845/2100337872/1776083208_60218314_l.mp3?auth_key=9cb89fd9a8596bfe5daedad02df1157f-1476201600-0-null";
         data.add(music3);
 
         Music music4 = new Music();
-        music4.name = "";
+        music4.name = "好きよ好きよ好きよ";
+        music4.singer = "藤原樱";
         music4.id = 1004;
         music4.url = "http://m5.file.xiami.com/845/915604845/2100342628/1776112408_60272182_l.mp3?auth_key=7857f081f35554c7ef77dc62ff057b81-1476201600-0-null";
         data.add(music4);
 
         Music music5 = new Music();
-        music5.name = "";
+        music5.name = "Not Today";
+        music5.singer = "Imagine Dragons";
         music5.id = 1005;
         music5.url = "http://m5.file.xiami.com/256/23256/2100326216/1776002808_60306282_l.mp3?auth_key=5a16b01027c08ba4db182afdebfabc73-1476201600-0-null";
         data.add(music5);
 
         Music music6 = new Music();
-        music6.name = "";
+        music6.name = "碎碎恋";
+        music6.singer = "陈学冬";
         music6.id = 1006;
         music6.url = "http://m5.file.xiami.com/40/1905327040/2100350207/1776156054_60302449_l.mp3?auth_key=98a52b1354ed72d85aadbef1b94d5802-1476201600-0-null";
         data.add(music6);

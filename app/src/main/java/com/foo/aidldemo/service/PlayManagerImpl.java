@@ -231,17 +231,29 @@ public class PlayManagerImpl implements PlayManager {
 
     @Override
     public void pause() {
-
+        try {
+            mBinder.pause();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void resume() {
-
+        try {
+            mBinder.resume();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void stop() {
-
+        try {
+            mBinder.stop();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
