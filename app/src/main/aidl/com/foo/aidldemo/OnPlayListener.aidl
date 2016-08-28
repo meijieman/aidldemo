@@ -7,4 +7,6 @@ interface OnPlayListener {
     void onBufferingUpdate(int percent); // 缓存进度
     void onUpdate(int percent); // 歌曲进度
     void onStateChanged(int state, String msg); // 播放器状态改变
+
+    void onMessage(String msg); // 消息提示
 }

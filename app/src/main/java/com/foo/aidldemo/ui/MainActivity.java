@@ -1,11 +1,12 @@
 package com.foo.aidldemo.ui;
 
-import android.os.RemoteException;
 import android.view.View;
 import android.widget.TextView;
 
 import com.foo.aidldemo.R;
+import com.foo.aidldemo.base.BaseActivity;
 import com.foo.aidldemo.presenter.PlayPresenter;
+import com.foo.aidldemo.utils.ToastUtil;
 import com.foo.aidldemo.view.PlayView;
 
 import butterknife.BindView;
@@ -23,9 +24,9 @@ public class MainActivity extends BaseActivity implements PlayView {
     private PlayPresenter mPresenter;
 
     @Override
-    protected void initEventAndListener() {
+    protected void init() {
         mPresenter = new PlayPresenter(this);
-        mPresenter.create(this);
+        mPresenter.create();
 
         mPresenter.loadData(0);
     }
@@ -43,7 +44,6 @@ public class MainActivity extends BaseActivity implements PlayView {
 
     @OnClick({R.id.btn_play, R.id.btn_pause, R.id.btn_resume, R.id.btn_stop, R.id.btn_previous, R.id.btn_next})
     void onClick(View view) {
-        try {
             switch (view.getId()) {
                 case R.id.btn_play:
                     mPresenter.play(0);
@@ -64,9 +64,6 @@ public class MainActivity extends BaseActivity implements PlayView {
                     mPresenter.next();
                     break;
             }
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -86,6 +83,6 @@ public class MainActivity extends BaseActivity implements PlayView {
 
     @Override
     public void showT(String msg) {
-        showToast(msg);
+        ToastUtil.showToast(msg);
     }
 }

@@ -5,10 +5,10 @@ import android.util.Log;
 /**
  * Created by Administrator on 2016/7/12.
  */
-public class LogUtils {
+public class LogUtil {
 
     private static final boolean isDebug = true;
-    private static final String TAG = "LogUtils";
+    private static final String  TAG     = "LogUtil";
 
     public static void e(String msg) {
         if (!isDebug) {

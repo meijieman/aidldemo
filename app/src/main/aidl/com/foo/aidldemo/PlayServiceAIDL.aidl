@@ -4,6 +4,7 @@ package com.foo.aidldemo;
 // Declare any non-default types here with import statements
 import com.foo.aidldemo.aidl.Music;
 import com.foo.aidldemo.OnPlayListener;
+import com.foo.aidldemo.OnPlayEdListener;
 
 interface PlayServiceAIDL {
 
@@ -22,4 +23,7 @@ interface PlayServiceAIDL {
 
     void registerPlayListener(OnPlayListener listener);// 播放回调
     void unRegisterPlayListener(OnPlayListener listener);
+
+    void setPlayedListener(OnPlayedListener listener);
+    void removePlayedListener(OnPlayedListener listener);
 }

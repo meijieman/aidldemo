@@ -3,17 +3,16 @@ package com.foo.aidldemo.presenter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
-import android.os.RemoteException;
 
 import com.foo.aidldemo.OnPlayListener;
 import com.foo.aidldemo.aidl.Music;
+import com.foo.aidldemo.base.BaseApp;
 import com.foo.aidldemo.listener.OnNetResultListener;
 import com.foo.aidldemo.model.PlayModel;
 import com.foo.aidldemo.service.PlayManager;
 import com.foo.aidldemo.service.PlayManagerImpl;
 import com.foo.aidldemo.service.PlayService;
 import com.foo.aidldemo.service.constant.PlayState;
-import com.foo.aidldemo.utils.LogUtils;
 import com.foo.aidldemo.view.PlayView;
 
 import java.util.List;
@@ -33,19 +32,20 @@ public class PlayPresenter {
         mView = view;
     }
 
-    public void create(Context ctx) {
+    public void create() {
+        Context ctx = BaseApp.getInstance();
         Intent service = new Intent(ctx, PlayService.class);
         ctx.startService(service);
-        mManager = new PlayManagerImpl(ctx);
-        mManager.init();
+        mManager = PlayManagerImpl.getInstance();
+        mManager.init(ctx);
         mView.setStatus("初始化播放器");
+        mManager.register(mListener);
     }
 
     private OnPlayListener mListener = new OnPlayListener.Stub() {
 
         @Override
-        public void onBufferingUpdate(final int percent) throws RemoteException {
-            LogUtils.e("缓冲进度 " + percent + "%");
+        public void onBufferingUpdate(final int percent) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -55,7 +55,7 @@ public class PlayPresenter {
         }
 
         @Override
-        public void onUpdate(final int percent) throws RemoteException {
+        public void onUpdate(final int percent) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -65,7 +65,7 @@ public class PlayPresenter {
         }
 
         @Override
-        public void onStateChanged(final int state, final String msg) throws RemoteException {
+        public void onStateChanged(final int state, final String msg) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -75,10 +75,10 @@ public class PlayPresenter {
                             mView.showT("准备播放《" + name + "》");
                             break;
                         case PlayState.STATE_PLAYING:
-                            mView.showT("正在播放《" + name + "》");
+                            mView.setStatus("正在播放《" + name + "》");
                             break;
                         case PlayState.STATE_STOP:
-                            mView.showT("停止");
+                            mView.setStatus("停止");
                             break;
                         case PlayState.STATE_PAUSE:
                             mView.setStatus("暂停");
@@ -90,35 +90,46 @@ public class PlayPresenter {
                 }
             });
         }
+
+        @Override
+        public void onMessage(String msg) {
+            mView.showT(msg);
+        }
     };
 
     public void destroy() {
         mManager.unRegister(mListener);
-        mManager.destroy();
+        mManager.destroy(BaseApp.getInstance());
     }
 
-    public void play(int pos) throws RemoteException {
+    public void play(int pos) {
         mManager.play(pos);
     }
 
-    public void pause() throws RemoteException {
+    public void pause() {
         mManager.pause();
     }
 
-    public void resume() throws RemoteException {
+    public void resume() {
         mManager.resume();
     }
 
-    public void stop() throws RemoteException {
+    public void stop() {
         mManager.stop();
     }
 
-    public void previous() throws RemoteException {
+    public void previous() {
         boolean isSuccess = mManager.playPrevious();
+        if (!isSuccess) {
+            mView.showT("没有上一曲");
+        }
     }
 
-    public void next() throws RemoteException {
+    public void next() {
         boolean isSuccess = mManager.playNext();
+        if (!isSuccess) {
+            mView.showT("没有下一曲");
+        }
     }
 
     public void setPlayList(List<Music> data) {

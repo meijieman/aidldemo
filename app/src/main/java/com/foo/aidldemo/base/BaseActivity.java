@@ -1,9 +1,8 @@
-package com.foo.aidldemo.ui;
+package com.foo.aidldemo.base;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
 
 import butterknife.ButterKnife;
 
@@ -12,7 +11,6 @@ import butterknife.ButterKnife;
  */
 public abstract class BaseActivity extends AppCompatActivity {
 
-    private static Toast sToast;
     protected static BaseActivity sActivity;
 
     @Override
@@ -22,30 +20,18 @@ public abstract class BaseActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         sActivity = this;
 
-        initEventAndListener();
+        init();
     }
 
     /**
      * 初始化
      */
-    protected abstract void initEventAndListener();
+    protected abstract void init();
 
     /**
      * 获取布局文件的 id
      * @return
      */
     protected abstract int getContentView();
-
-    /**
-     * toast
-     * @param msg
-     */
-    public static void showToast(String msg) {
-        if (sToast == null) {
-            sToast = Toast.makeText(sActivity, "", Toast.LENGTH_SHORT);
-        }
-        sToast.setText(msg);
-        sToast.show();
-    }
 
 }

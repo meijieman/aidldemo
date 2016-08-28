@@ -1,5 +1,7 @@
 package com.foo.aidldemo.service;
 
+import android.content.Context;
+
 import com.foo.aidldemo.OnPlayListener;
 import com.foo.aidldemo.aidl.Music;
 
@@ -12,8 +14,8 @@ import java.util.List;
  */
 public interface PlayManager {
 
-    void init(); // 初始化
-    void destroy(); // 销毁
+    void init(Context ctx); // 初始化
+    void destroy(Context ctx); // 销毁
 
     void setPlayList(List<Music> data);
     List<Music> getPlayList();
@@ -21,9 +23,6 @@ public interface PlayManager {
     int getCurrentPosition();
 
     int getPlayState();
-
-    int nextPosition(); // -1 表示没有下一个
-    int previousPosition(); // -1 表示没有上一个
 
     // false 没有下一个
     boolean playNext();

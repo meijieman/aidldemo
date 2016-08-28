@@ -5,10 +5,11 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 
 import com.foo.aidldemo.OnPlayListener;
+import com.foo.aidldemo.OnPlayedListener;
 import com.foo.aidldemo.PlayServiceAIDL;
 import com.foo.aidldemo.aidl.Music;
 import com.foo.aidldemo.service.constant.PlayState;
-import com.foo.aidldemo.utils.LogUtils;
+import com.foo.aidldemo.utils.LogUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,9 +21,11 @@ import java.util.List;
 public class PlayBinder extends PlayServiceAIDL.Stub {
 
     private MediaPlayer mPlayer;
-    private List<Music> mPlayList = new ArrayList<>();
+    private List<Music> mPlayList = new ArrayList<>(); // 播放列表
 
-    private RemoteCallbackList<OnPlayListener> mCallbackList = new RemoteCallbackList<>();
+    private OnPlayedListener mPlayedListener; // 播放完成回调，供自动播放下一曲使用
+
+    private RemoteCallbackList<OnPlayListener> mCallbackList = new RemoteCallbackList<>(); // 播放状态回调
 
     private int mPosition = -1; // 当前播放位置
     private int mState;
@@ -36,15 +39,20 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-
                 changeState(PlayState.STATE_COMPLETION, null);
+                if (mPlayedListener != null) {
+                    try {
+                        mPlayedListener.OnPlayed();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         });
         // 得到缓冲的百分比
         mPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
             @Override
             public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                LogUtils.e("缓冲的百分比 " + percent);
                 int count = mCallbackList.beginBroadcast();
                 for (int i = 0; i < count; i++) {
                     try {
@@ -59,8 +67,7 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         mPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(MediaPlayer mp, int what, int extra) {
-
-                LogUtils.e("what " + what + " extra " + extra);
+                LogUtil.e("what " + what + " extra " + extra);
                 // 当一些特定信息出现或者警告时触发
                 switch (what) {
                     case MediaPlayer.MEDIA_INFO_BAD_INTERLEAVING:
@@ -97,7 +104,6 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                // 其他线程
                 changeState(PlayState.STATE_PLAYING, null);
                 mp.start();
             }
@@ -118,9 +124,23 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         mCallbackList.finishBroadcast();
     }
 
-    // 实现自定义的方法
     @Override
     public void play(int pos) {
+        if (mPosition == pos && mState == PlayState.STATE_PLAYING) {
+            return;
+        }
+        if (mPlayList.size() == 0) {
+            int count = mCallbackList.beginBroadcast();
+            for (int i = 0; i < count; i++) {
+                try {
+                    mCallbackList.getBroadcastItem(i).onMessage("播放列表为空，请先选择歌曲");
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+            mCallbackList.finishBroadcast();
+            return;
+        }
         mPosition = pos;
         if (mPlayer == null) {
             throw new IllegalStateException("mediaPlayer 为空");
@@ -148,6 +168,7 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
         }
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
+            changeState(PlayState.STATE_PAUSE, null);
         }
     }
 
@@ -157,6 +178,7 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
             return;
         }
         mPlayer.stop();
+        changeState(PlayState.STATE_STOP, null);
     }
 
     @Override
@@ -208,12 +230,25 @@ public class PlayBinder extends PlayServiceAIDL.Stub {
     }
 
     @Override
+    public void setPlayedListener(OnPlayedListener listener) throws RemoteException {
+        if (listener != null) {
+            mPlayedListener = listener;
+        }
+    }
+
+    @Override
+    public void removePlayedListener(OnPlayedListener listener) throws RemoteException {
+        mPlayedListener = null;
+    }
+
+    @Override
     public void resume() {
         if (mPlayer == null) {
             throw new IllegalStateException("mediaPlayer 为空");
         }
         if (!mPlayer.isPlaying()) {
             mPlayer.start();
+            changeState(PlayState.STATE_PLAYING, null);
         }
     }
 }

@@ -8,14 +8,16 @@ import android.os.IBinder;
 import android.os.RemoteException;
 
 import com.foo.aidldemo.OnPlayListener;
+import com.foo.aidldemo.OnPlayedListener;
 import com.foo.aidldemo.PlayServiceAIDL;
 import com.foo.aidldemo.aidl.Music;
 import com.foo.aidldemo.service.constant.PlayOrder;
+import com.foo.aidldemo.utils.LogUtil;
 
 import java.util.List;
 
 /**
- * @Desc: TODO
+ * @Desc: playMusic 管理类 单例
  * @Author: Major
  * @Since: 2016/8/27 23:30
  */
@@ -23,11 +25,16 @@ public class PlayManagerImpl implements PlayManager {
 
     private int mSortBy = PlayOrder.ORDER_INORDER; // 播放顺序，默认顺序播放
 
-    private Context         mContext;
     private PlayServiceAIDL mBinder;
 
-    public PlayManagerImpl(Context ctx) {
-        mContext = ctx;
+    private PlayManagerImpl() {
+
+    }
+
+    private static PlayManager sInstance = new PlayManagerImpl();
+
+    public static PlayManager getInstance() {
+        return sInstance;
     }
 
     public void setSortBy(int sortBy) {
@@ -44,6 +51,17 @@ public class PlayManagerImpl implements PlayManager {
             mBinder = PlayServiceAIDL.Stub.asInterface(service);
             try {
                 mBinder.registerPlayListener(mListener);
+                mBinder.setPlayedListener(new OnPlayedListener.Stub(){
+                    @Override
+                    public void OnPlayed() throws RemoteException {
+                        switch (mSortBy) {
+                            case PlayOrder.ORDER_INORDER:
+                                boolean isSuccess = playNext();
+                                LogUtil.e("ORDER_INORDER 自动播放下一曲 " + isSuccess);
+                                break;
+                        }
+                    }
+                });
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -51,18 +69,25 @@ public class PlayManagerImpl implements PlayManager {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mBinder = null;
+            try {
+                mBinder.removePlayedListener(null);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } finally {
+                mBinder = null;
+            }
         }
     };
 
-    public void init() {
-        Intent service = new Intent(mContext, PlayService.class);
-        mContext.bindService(service, conn, Context.BIND_AUTO_CREATE);
+    @Override
+    public void init(Context ctx) {
+        Intent service = new Intent(ctx, PlayService.class);
+        ctx.bindService(service, conn, Context.BIND_AUTO_CREATE);
     }
 
     @Override
-    public void destroy() {
-        mContext.unbindService(conn);
+    public void destroy(Context ctx) {
+        ctx.unbindService(conn);
     }
 
 
@@ -130,13 +155,30 @@ public class PlayManagerImpl implements PlayManager {
         return 0;
     }
 
-    @Override
-    public int nextPosition() {
+    // -1 表示没有下一个
+    private int nextPosition() {
+        int total = 0;
+        try {
+            List<Music> playList = mBinder.getPlayList();
+            if (playList != null) {
+                total = playList.size();
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        int pos = getCurrentPosition();
+        switch (mSortBy) {
+            case PlayOrder.ORDER_INORDER:
+                if (pos >= 0 && pos < total - 1) {
+                    return pos + 1;
+                }
+                break;
+        }
         return -1;
     }
 
-    @Override
-    public int previousPosition() {
+    // -1 表示没有上一个
+    private int previousPosition() {
         int total = 0;
         try {
             List<Music> playList = mBinder.getPlayList();
@@ -160,13 +202,21 @@ public class PlayManagerImpl implements PlayManager {
 
     @Override
     public boolean playNext() {
-
+        int next = nextPosition();
+        if (next != -1) {
+            play(next);
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean playPrevious() {
-
+        int previous = previousPosition();
+        if (previous != -1) {
+            play(previous);
+            return true;
+        }
         return false;
     }
 
